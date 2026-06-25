@@ -1,0 +1,15 @@
+artifact_uri: file:///D:/VinUni/Day21-Track2-CI-CD-for-AI-Systems/mlruns/0/e02e3f8afe1b4265823a74d9a9eb2ea9/artifacts
+end_time: 1782362097736
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: e02e3f8afe1b4265823a74d9a9eb2ea9
+run_name: languid-hare-890
+run_uuid: e02e3f8afe1b4265823a74d9a9eb2ea9
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1782362093257
+status: 3
+tags: []
+user_id: FPT 1174
