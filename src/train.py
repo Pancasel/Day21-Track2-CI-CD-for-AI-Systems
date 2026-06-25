@@ -10,9 +10,13 @@ from sklearn.metrics import accuracy_score, f1_score
 
 EVAL_THRESHOLD = 0.70
 
-mlflow.set_tracking_uri(
-    os.environ.get("MLFLOW_TRACKING_URI", "sqlite:///mlflow.db")
-)
+
+def _configure_mlflow() -> None:
+    if os.environ.get("CI"):
+        return
+    mlflow.set_tracking_uri(
+        os.environ.get("MLFLOW_TRACKING_URI", "sqlite:///mlflow.db")
+    )
 
 
 def train(
@@ -39,28 +43,29 @@ def train(
     X_eval = df_eval.drop(columns=["target"])
     y_eval = df_eval["target"]
 
-    with mlflow.start_run():
-        mlflow.log_params(params)
+    model = RandomForestClassifier(**params, random_state=42)
+    model.fit(X_train, y_train)
 
-        model = RandomForestClassifier(**params, random_state=42)
-        model.fit(X_train, y_train)
+    preds = model.predict(X_eval)
+    acc = accuracy_score(y_eval, preds)
+    f1 = f1_score(y_eval, preds, average="weighted")
 
-        preds = model.predict(X_eval)
-        acc = accuracy_score(y_eval, preds)
-        f1 = f1_score(y_eval, preds, average="weighted")
+    print(f"Accuracy: {acc:.4f} | F1: {f1:.4f}")
 
-        mlflow.log_metric("accuracy", acc)
-        mlflow.log_metric("f1_score", f1)
-        mlflow.sklearn.log_model(model, "model")
+    if not os.environ.get("CI"):
+        _configure_mlflow()
+        with mlflow.start_run():
+            mlflow.log_params(params)
+            mlflow.log_metric("accuracy", acc)
+            mlflow.log_metric("f1_score", f1)
+            mlflow.sklearn.log_model(model, "model")
 
-        print(f"Accuracy: {acc:.4f} | F1: {f1:.4f}")
+    os.makedirs("outputs", exist_ok=True)
+    with open("outputs/metrics.json", "w") as f:
+        json.dump({"accuracy": acc, "f1_score": f1}, f)
 
-        os.makedirs("outputs", exist_ok=True)
-        with open("outputs/metrics.json", "w") as f:
-            json.dump({"accuracy": acc, "f1_score": f1}, f)
-
-        os.makedirs("models", exist_ok=True)
-        joblib.dump(model, "models/model.pkl")
+    os.makedirs("models", exist_ok=True)
+    joblib.dump(model, "models/model.pkl")
 
     return acc
 

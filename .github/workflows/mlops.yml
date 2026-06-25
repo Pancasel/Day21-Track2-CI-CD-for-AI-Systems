@@ -26,8 +26,6 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run unit tests
-        env:
-          MLFLOW_TRACKING_URI: file:///tmp/mlruns
         run: pytest tests/ -v
 
 
@@ -70,8 +68,6 @@ jobs:
         run: dvc pull data/train_phase1.csv.dvc data/eval.csv.dvc
 
       - name: Train model
-        env:
-          MLFLOW_TRACKING_URI: file:///tmp/mlruns
         run: python src/train.py
 
       - name: Read metrics
